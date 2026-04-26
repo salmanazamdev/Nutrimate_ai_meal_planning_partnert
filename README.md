@@ -2,7 +2,7 @@
 
 NutriMate is a web app for meal planning, nutrition goal tracking, and progress monitoring. It uses Firebase for authentication/data and a proxy-first AI integration (Cloudflare Worker + Gemini) for secure meal recommendations with resilient local fallback.
 
-## Features
+## Awesome Features
 
 - Email/password authentication with Firebase Auth
 - Profile management: age, height, weight, activity level, and diet type
