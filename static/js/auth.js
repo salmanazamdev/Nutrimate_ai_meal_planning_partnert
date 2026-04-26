@@ -36,7 +36,7 @@ async function signUp(email, password, userData) {
 
     // Redirect to dashboard after 1.5 seconds
     setTimeout(() => {
-      window.location.href = 'dashboard.html';
+      window.location.href = '/dashboard';
     }, 1500);
 
     return user;
@@ -73,7 +73,7 @@ async function login(email, password) {
 
     // Redirect to dashboard after 1 second
     setTimeout(() => {
-      window.location.href = 'dashboard.html';
+      window.location.href = '/dashboard';
     }, 1000);
 
     return user;
@@ -98,7 +98,7 @@ async function logout() {
     
     // Redirect to welcome page
     setTimeout(() => {
-      window.location.href = 'welcome.html';
+      window.location.href = '/';
     }, 1000);
 
   } catch (error) {
@@ -121,7 +121,7 @@ function checkAuth(redirectIfNot = false) {
       } else {
         console.log("ℹ️ No user authenticated");
         if (redirectIfNot) {
-          window.location.href = 'login.html';
+          window.location.href = '/login';
         }
         resolve(null);
       }
@@ -144,9 +144,9 @@ function redirectIfAuthenticated() {
   auth.onAuthStateChanged((user) => {
     if (user) {
       const currentPage = window.location.pathname.split('/').pop();
-      if (currentPage === 'login.html' || currentPage === 'createaccount.html' || currentPage === 'welcome.html') {
+      if (window.location.pathname === '/login' || window.location.pathname === '/createaccount' || window.location.pathname === '/') {
         console.log("✅ User already logged in, redirecting to dashboard");
-        window.location.href = 'dashboard.html';
+        window.location.href = '/dashboard';
       }
     }
   });

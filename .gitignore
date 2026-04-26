@@ -1,6 +1,11 @@
 # Firebase Configuration & API Keys
 js/config.js
 js/ai.js
+static/js/config.js
+static/js/ai.js
+
+# Firebase Service Account Keys
+serviceAccountKey.json
 
 # Environment Variables
 .env
@@ -39,3 +44,6 @@ yarn-debug.log*
 .firebase/
 firebase-debug.log
 firestore-debug.log
+
+# Trained model (large binary, regenerate with main.py)
+meal_model.pkl
