@@ -1,3 +1,7 @@
+import os
+os.environ["OMP_NUM_THREADS"] = "1"
+os.environ["OPENBLAS_NUM_THREADS"] = "1"
+os.environ["MKL_NUM_THREADS"] = "1"
 import pandas as pd
 from sklearn.model_selection import train_test_split, cross_val_score
 from sklearn.ensemble import RandomForestClassifier
@@ -83,12 +87,12 @@ preprocessor = ColumnTransformer([
 # MODEL
 # =========================
 model = RandomForestClassifier(
-    n_estimators=1000,
-    max_depth=25,
-    min_samples_split=3,
+    n_estimators=100,
+    max_depth=10,
+    min_samples_split=5,
     class_weight='balanced_subsample',
     random_state=42,
-    n_jobs=-1
+    n_jobs=2
 )
 
 pipeline = Pipeline([
