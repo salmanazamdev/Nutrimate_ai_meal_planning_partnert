@@ -1,10 +1,11 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Dashboard — NutriMate</title>
   <link rel="icon" href="data:,">
+  <link rel="icon" href="{{ url_for('static', filename='images/favicon.png') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboardstyle.css') }}">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
@@ -35,8 +36,7 @@
     </ul>
   </nav>
   <div class="header-actions">
-    <button type="button" id="loginBtn" style="display:none" class="btn-outline-header"
-      onclick="location.href='{{ url_for('login') }}'">Login</button>
+    <button type="button" id="loginBtn" class="btn-outline-header" onclick='location.href="{{ url_for("login") }}";'>Login</button>
     <button type="button" class="btn-logout" onclick="logout()">
       <i class="fa-solid fa-right-from-bracket"></i> Logout
     </button>
@@ -88,119 +88,192 @@
 
 <main class="dash-wrapper" id="mainContent">
 
-  <!-- LEFT COLUMN -->
-  <div class="dash-left">
+ <!-- LEFT COLUMN -->
+<div class="dash-left">
 
-    <!-- DAILY PLANNER -->
-    <div class="dash-card" id="mealplans">
-      <div class="card-header">
-        <div class="card-title-group">
-          <div class="card-icon"><i class="fa-solid fa-utensils"></i></div>
-          <div>
-            <h2 class="card-title">Daily Planner</h2>
-            <p class="card-subtitle">Log your meals for the day</p>
-          </div>
-        </div>
+<!-- DAILY PLANNER -->
+<div class="dash-card" id="mealplans">
+
+  <div class="card-header">
+    <div class="card-title-group">
+      <div class="card-icon"><i class="fa-solid fa-utensils"></i></div>
+      <div>
+        <h2 class="card-title">Daily Planner</h2>
+        <p class="card-subtitle">Log your meals for the day</p>
       </div>
-      <div class="meal-form">
-        <div class="form-row two-col">
-          <div class="field-group">
-            <label for="planDate"><i class="fa-regular fa-calendar"></i> Date</label>
-            <input type="date" id="planDate">
-          </div>
-          <div class="field-group">
-            <label for="mealSlot"><i class="fa-solid fa-clock"></i> Meal Slot</label>
-            <select id="mealSlot">
-              <option>Breakfast</option>
-              <option>Lunch</option>
-              <option>Dinner</option>
-              <option>Snack</option>
-            </select>
-          </div>
-        </div>
-        <div class="field-group">
-          <label for="searchMeal"><i class="fa-solid fa-magnifying-glass"></i> Meal Name</label>
-          <input type="text" id="searchMeal" placeholder="e.g. Grilled chicken salad">
-        </div>
-        <div class="form-row three-col">
-          <div class="field-group">
-            <label for="mealCalories"><i class="fa-solid fa-fire"></i> Calories</label>
-            <input type="number" id="mealCalories" placeholder="kcal" min="0">
-          </div>
-          <div class="field-group">
-            <label for="mealProtein"><i class="fa-solid fa-dumbbell"></i> Protein</label>
-            <input type="number" id="mealProtein" placeholder="grams" min="0">
-          </div>
-          <div class="field-group">
-            <label for="mealCost"><i class="fa-solid fa-tag"></i> Cost (Rs)</label>
-            <input type="number" id="mealCost" placeholder="0" min="0">
-          </div>
-        </div>
-        <button id="addCustomMealBtn" class="btn-add-meal">
-          <i class="fa-solid fa-plus"></i> Add Meal
-        </button>
+    </div>
+  </div>
+
+  <!-- FIXED FLASK ROUTE -->
+ <form class="meal-form" id="mealForm">
+
+    <div class="form-row two-col">
+
+      <div class="field-group">
+        <label for="planDate">
+          <i class="fa-regular fa-calendar"></i> Date
+        </label>
+        <input type="date" id="planDate" name="planDate">
       </div>
-      <div class="meal-list-section"><div id="todayMeals"></div></div>
-      <div class="totals-bar">
-        <div class="total-item">
-          <i class="fa-solid fa-fire total-icon cal-icon"></i>
-          <div>
-            <span class="total-value" id="totalCals">0</span>
-            <span class="total-label">kcal</span>
-          </div>
-        </div>
-        <div class="total-divider"></div>
-        <div class="total-item">
-          <i class="fa-solid fa-dumbbell total-icon prot-icon"></i>
-          <div>
-            <span class="total-value" id="totalProtein">0</span>
-            <span class="total-label">g protein</span>
-          </div>
-        </div>
-        <div class="total-divider"></div>
-        <div class="total-item">
-          <i class="fa-solid fa-tag total-icon cost-icon"></i>
-          <div>
-            <span class="total-value">Rs <span id="totalCost">0</span></span>
-            <span class="total-label">today</span>
-          </div>
-        </div>
-        <button id="clearDayBtn" class="btn-clear">
-          <i class="fa-solid fa-trash-can"></i> Clear Day
-        </button>
+
+      <div class="field-group">
+        <label for="mealSlot">
+          <i class="fa-solid fa-clock"></i> Meal Slot
+        </label>
+        <select id="mealSlot" name="mealSlot">
+          <option value="Breakfast">Breakfast</option>
+          <option value="Lunch">Lunch</option>
+          <option value="Dinner">Dinner</option>
+          <option value="Snack">Snack</option>
+        </select>
+      </div>
+
+    </div>
+
+    <div class="field-group">
+      <label for="searchMeal">
+        <i class="fa-solid fa-magnifying-glass"></i> Meal Name
+      </label>
+      <input type="text" id="searchMeal" name="mealName" placeholder="e.g. Grilled chicken salad">
+    </div>
+
+    <div class="form-row three-col">
+
+      <div class="field-group">
+        <label for="mealCalories">
+          <i class="fa-solid fa-fire"></i> Calories
+        </label>
+        <input type="number" id="mealCalories" name="calories" placeholder="kcal" min="0">
+      </div>
+
+      <div class="field-group">
+        <label for="mealProtein">
+          <i class="fa-solid fa-dumbbell"></i> Protein
+        </label>
+        <input type="number" id="mealProtein" name="protein" placeholder="grams" min="0">
+      </div>
+
+      <div class="field-group">
+        <label for="mealCost">
+          <i class="fa-solid fa-tag"></i> Cost (Rs)
+        </label>
+        <input type="number" id="mealCost" name="cost" placeholder="0" min="0">
+      </div>
+
+    </div>
+
+<button id="addCustomMealBtn"  class="btn-add-meal"type="button">
+      <i class="fa-solid fa-plus"></i> Add Meal
+    </button>
+  </form>
+
+  <!-- LIST -->
+  <div class="meal-list-section">
+    <div id="todayMeals"></div>
+    <div id="mealList"></div>
+  </div>
+
+  <!-- TOTALS -->
+  <div class="totals-bar">
+
+    <div class="total-item">
+      <i class="fa-solid fa-fire total-icon cal-icon"></i>
+      <div>
+        <span class="total-value" id="totalCals">0</span>
+        <span class="total-label">kcal</span>
       </div>
     </div>
 
-    <!-- AI SUGGESTIONS -->
-    <div class="dash-card" id="aiplans">
-      <div class="card-header">
-        <div class="card-title-group">
-          <div class="card-icon ai-icon-bg"><i class="fa-solid fa-robot"></i></div>
-          <div>
-            <h2 class="card-title">AI Meal Suggestions</h2>
-            <p class="card-subtitle">Powered by your profile &amp; goals</p>
-          </div>
-        </div>
+    <div class="total-divider"></div>
+
+    <div class="total-item">
+      <i class="fa-solid fa-dumbbell total-icon prot-icon"></i>
+      <div>
+        <span class="total-value" id="totalProtein">0</span>
+        <span class="total-label">g protein</span>
       </div>
-      <div id="aiSuggestions">
-        <div class="ai-empty-state">
-          <i class="fa-solid fa-wand-magic-sparkles"></i>
-          <p>Click below to get a personalised meal suggestion based on your profile.</p>
-        </div>
-      </div>
-      <button id="suggestMealsBtn" class="btn-ai">
-        <i class="fa-solid fa-wand-magic-sparkles"></i> Generate AI Meal Plan
-      </button>
     </div>
 
-  </div><!-- end dash-left -->
+    <div class="total-divider"></div>
 
-  <!-- RIGHT COLUMN -->
-  <div class="dash-right">
+    <div class="total-item">
+      <i class="fa-solid fa-tag total-icon cost-icon"></i>
+      <div>
+        <span class="total-value">Rs <span id="totalCost">0</span></span>
+        <span class="total-label">today</span>
+      </div>
+    </div>
 
-    <!-- PROFILE -->
-    <div class="dash-card" id="profile">
-      <div class="card-header">
+    <button id="clearDayBtn" class="btn-clear">
+      <i class="fa-solid fa-trash-can"></i> Clear Day
+    </button>
+
+  </div>
+
+</div>
+
+<!-- AI SECTION FIXED -->
+<div class="dash-card" id="aiplans">
+
+  <form action="/predict" method="POST">
+
+    <div class="card-header">
+      <div class="card-title-group">
+        <div class="card-icon ai-icon-bg">
+          <i class="fa-solid fa-robot"></i>
+        </div>
+        <div>
+          <h2 class="card-title">AI Meal Suggestions</h2>
+          <p class="card-subtitle">Powered by your profile & goals</p>
+        </div>
+      </div>
+    </div>
+
+    <div id="aiSuggestions">
+      <div id="generatedMealImage"></div>
+      <p id="aiBox"></p>
+
+      <div class="ai-empty-state">
+        <i class="fa-solid fa-wand-magic-sparkles"></i>
+        <p>Click below to get a personalised meal suggestion</p>
+      </div>
+    </div>
+
+    <button id="suggestMealsBtn" class="btn-ai" type="submit">
+      Generate AI Meal Plan
+    </button>
+
+  </form>
+
+  <!-- CHATBOT FIX (NO DUPLICATE ISSUE HANDLED LOGICALLY) -->
+  <div id="chatBox"></div>
+
+  <div class="field-group" style="padding:20px 24px 24px;">
+    <label for="chatInput">
+      <i class="fa-solid fa-comments"></i>
+      AI Chat
+    </label>
+
+    <input type="text" id="chatInput" placeholder="Ask NutriMate AI anything...">
+
+    <button type="button" onclick="sendChat()" class="btn-ai">
+      Send
+    </button>
+  </div>
+
+</div>
+
+</div>
+
+<!-- RIGHT COLUMN -->
+<div class="dash-right">
+
+<!-- PROFILE -->
+
+
+  <div class="profile-form" class="dash-card" id="profile">
+
+    <div class="card-header">
         <div class="card-title-group">
           <div class="card-icon"><i class="fa-solid fa-user"></i></div>
           <div>
@@ -246,12 +319,15 @@
               <option value="vegan">Vegan</option>
             </select>
           </div>
+          <button id="profileBtn" class="btn-save" class="dash-btn">
+  Save Profile
+</button>
         </div>
       </div>
     </div>
 
     <!-- GOALS -->
-    <div class="dash-card" id="goals">
+    <div class="dash-card" class="goals-form" id="goals">
       <div class="card-header">
         <div class="card-title-group">
           <div class="card-icon goal-icon-bg"><i class="fa-solid fa-bullseye"></i></div>
@@ -260,8 +336,11 @@
             <p class="card-subtitle">Set your nutrition targets</p>
           </div>
         </div>
-      </div>
-      <div class="goals-form">
+      
+
+  </div>
+
+
         <div class="field-group">
           <label for="goalType"><i class="fa-solid fa-arrow-trend-up"></i> Goal</label>
           <select id="goalType">
@@ -286,11 +365,11 @@
         <button id="saveGoalsBtn" class="btn-save">
           <i class="fa-solid fa-floppy-disk"></i> Save Goals
         </button>
+        
       </div>
     </div>
+  </div>
 
-  </div><!-- end dash-right -->
-</main>
 
 <footer class="footer">
   <div class="footer-inner">
@@ -341,21 +420,7 @@ diet assistant.<br>Eat smart, live well.</p>
 <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
 <script src="{{ url_for('static', filename='js/database.js') }}"></script>
 <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
-<script>
-(function(){
-  var btn=document.getElementById('menuBtn'),menu=document.getElementById('sidebarMenu');
-  if(btn&&menu){
-    btn.addEventListener('click',function(e){e.stopPropagation();menu.classList.toggle('open');});
-    document.addEventListener('click',function(e){if(!menu.contains(e.target)&&!btn.contains(e.target))menu.classList.remove('open');});
-  }
-  if(typeof auth!=='undefined'){
-    auth.onAuthStateChanged(function(u){
-      var lb=document.getElementById('loginBtn');
-      if(lb)lb.style.display=u?'none':'inline-flex';
-    });
-  }
-})();
-</script>
+
 </div>
 </body>
 </html>
