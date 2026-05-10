@@ -1,139 +1,157 @@
-from flask import Flask, render_template, request, jsonify, redirect, url_for
+from email import policy
+
+from flask import Flask, request, jsonify, render_template
 import joblib
-import pandas as pd
+from recommender import get_recommendations
 
 app = Flask(__name__)
 
-# ================= MODEL =================
+# =========================
+# LOAD ML MODEL
+# =========================
 try:
-    model = joblib.load("meal_model.pkl")  # Fixed: was "model.pkl"
-    print("✅ Model loaded successfully")
-except Exception as e:
+    model = joblib.load("meal_model.pkl")
+    print("✅ ML Model Loaded")
+except:
     model = None
-    print("❌ Model failed to load:", e)
+    print("⚠️ ML Model not loaded")
 
 
-# ================= ROUTES =================
+# =========================
+# 🌐 FRONTEND PAGES
+# =========================
 
-@app.route('/')
+
+# HOME / WELCOME PAGE
+@app.route("/")
 def welcome():
-    return render_template('welcome.html')
+    return render_template("welcome.html")
 
-@app.route('/welcome')
-def welcome_page():
-    return render_template('welcome.html')
 
-@app.route('/dashboard')
-def dashboard():
-    return render_template('dashboard.html')
-
-@app.route('/home')
-def home():
-    return render_template('dashboard.html')
-
-@app.route('/howitworks')
-def howitworks():
-    return render_template('howitworks.html')
-
-@app.route('/about')
-def about():
-    return render_template('about.html')
-
-@app.route('/faq')
-def faq():
-    return render_template('faq.html')
-
-@app.route('/contact')
-def contact():
-    return render_template('contact.html')
-
-@app.route('/login')
+# LOGIN PAGE
+@app.route("/login")
 def login():
-    return render_template('login.html')
+    return render_template("login.html")
 
-@app.route('/logout')
-def logout():
-    # Firebase handles client-side signout; Flask just redirects to welcome
-    return redirect(url_for('welcome'))
 
-@app.route('/createaccount')
+# DASHBOARD PAGE
+@app.route("/dashboard")
+def dashboard():
+    return render_template("dashboard.html")
+
+@app.route("/createaccount")
 def createaccount():
-    return render_template('createaccount.html')
+    return render_template("createaccount.html")
 
-@app.route('/privacy')
+@app.route("/about")
+def about():
+    return render_template("about.html")
+
+@app.route("/contact")
+def contact():
+    return render_template("contact.html")
+
+@app.route("/faq")
+def faq():
+    return render_template("faq.html")
+
+@app.route("/howitworks")
+def howitworks():
+    return render_template("howitworks.html")
+
+    
+
+@app.route("/privacy")
 def privacy():
-    return render_template('privacy.html')
+    return render_template("privacy.html")
 
-@app.route('/terms')
+@app.route("/terms")
 def terms():
-    return render_template('terms.html')
+    return render_template("terms.html")
 
-
-# ================= ML API =================
-
-@app.route('/predict', methods=['POST'])
+# =========================
+# 🔥 AI RECOMMENDER API
+# =========================
+@app.route("/predict", methods=["POST"])
 def predict():
-    try:
-        if model is None:
-            return jsonify({"success": False, "error": "Model not loaded. Run main.py first to train."})
 
-        data = request.get_json()
-        if not data:
-            return jsonify({"success": False, "error": "No input data received"})
+    data = request.get_json()
 
-        age      = float(data.get('age', 25))
-        weight   = float(data.get('weight', 70))
-        height   = float(data.get('height', 170))
-        gender   = str(data.get('gender', 'male')).lower()
-        goal     = str(data.get('goal', 'maintain')).lower()
-        activity = str(data.get('activity', 'moderate')).lower()
-        disease  = str(data.get('disease', 'none')).lower()
-
-        # Frontend sends cm — convert to meters
-        if height > 3:
-            height_m = height / 100
-        else:
-            height_m = height
-
-        bmi = weight / (height_m ** 2)
-
-        # BMI level — matches training pd.cut bins exactly
-        if bmi < 18.5:
-            bmi_level = 'under'
-        elif bmi < 25:
-            bmi_level = 'normal'
-        elif bmi < 30:
-            bmi_level = 'over'
-        else:
-            bmi_level = 'obese'
-
-        bmi_age = bmi * age
-
-        # All 9 features matching training schema
-        input_df = pd.DataFrame([{
-            "age":       age,
-            "weight":    weight,
-            "height":    height_m,
-            "gender":    gender,
-            "bmi":       bmi,
-            "goal":      goal,
-            "disease":   disease,
-            "bmi_level": bmi_level,
-            "bmi_age":   bmi_age
-        }])
-
-        prediction = model.predict(input_df)
-
-        return jsonify({
-            "success":   True,
-            "meal":      str(prediction[0]),
-            "bmi":       round(bmi, 1),
-            "bmi_level": bmi_level
-        })
-
-    except Exception as e:
-        return jsonify({"success": False, "error": str(e)})
+    age = float(data.get("age", 25))
+    weight = float(data.get("weight", 70))
+    height_cm = float(data.get("height", 170))
+    goal = data.get("goal", "maintain").lower()
 
 
+    # BMI
+    height_m = height_cm / 100
+    bmi = weight / (height_m ** 2)
+
+    # BMI Level
+    if bmi < 18.5:
+        bmi_level = "under"
+    elif bmi < 25:
+        bmi_level = "normal"
+    elif bmi < 30:
+        bmi_level = "over"
+    else:
+        bmi_level = "obese"
+
+    # smart meal time
+    meal_time = "morning"
+
+    # dynamic recommendation
+    result = get_recommendations(
+        goal=goal,
+        disease="none",
+        diet_type="vegan",
+        meal_time=meal_time,
+        use_ai_image=True
+    )
+
+    return jsonify({
+        "status": "success",
+        "bmi": round(bmi, 1),
+        "bmi_level": bmi_level,
+        "data": result
+    })
+
+# =========================
+# 🤖 CHAT API
+# =========================
+@app.route("/chat", methods=["POST"])
+def chat():
+    data = request.get_json()
+    msg = data.get("message", "").lower()
+
+    goal = "gain" if "protein" in msg else "loss" if "diet" in msg else "maintain"
+
+    result = get_recommendations(goal, "none", "vegan", "morning")
+
+    return jsonify({
+        "status": "success",
+        "data": result
+    })
+
+
+#get_meals
+
+@app.route("/get_meals")
+def get_meals():
+    date = request.args.get("date")
+
+    return jsonify([
+        {
+            "id": 1,
+            "name": "Oats",
+            "mealType": "Breakfast",
+            "calories": 250,
+            "protein": 10,
+            "cost": 50
+        }
+    ])
+# =========================
+# RUN SERVER
+# =========================
 if __name__ == "__main__":
     app.run(debug=True)
