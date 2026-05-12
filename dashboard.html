@@ -36,7 +36,7 @@
     </ul>
   </nav>
   <div class="header-actions">
-    <button type="button" id="loginBtn" class="btn-outline-header" onclick='location.href="{{ url_for("login") }}";'>Login</button>
+    <button type="button" id="loginBtn" class="btn-outline-header" onclick="location.href='{{ url_for('login') }}';">Login</button>
     <button type="button" class="btn-logout" onclick="logout()">
       <i class="fa-solid fa-right-from-bracket"></i> Logout
     </button>
@@ -301,6 +301,26 @@
           <label for="height"><i class="fa-solid fa-ruler-vertical"></i> Height (cm)</label>
           <input id="height" type="number" placeholder="cm" min="1">
         </div>
+  
+        <div class="form-row two-col"></div>
+        <div class="field-group">
+  <label>Gender</label>
+
+  <select id="gender">
+    <option value="male">Male</option>
+    <option value="female">Female</option>
+  </select>
+</div>
+
+<div class="field-group">
+  <label>Disease</label>
+
+  <select id="disease">
+    <option value="none">None</option>
+    <option value="diabetes">Diabetes</option>
+    <option value="bp">Blood Pressure</option>
+  </select>
+</div>
         <div class="form-row two-col">
           <div class="field-group">
             <label for="activity"><i class="fa-solid fa-person-running"></i> Activity</label>

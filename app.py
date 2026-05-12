@@ -16,6 +16,68 @@ except:
     print("⚠️ ML Model not loaded")
 
 
+#----meals_db
+
+meals_db = []
+
+@app.route("/add_meal", methods=["POST"])
+def add_meal():
+
+    data = request.get_json()
+
+    meal = {
+        "id": len(meals_db) + 1,
+        "name": data.get("name"),
+        "mealType": data.get("mealType"),
+        "calories": data.get("calories"),
+        "protein": data.get("protein"),
+        "cost": data.get("cost"),
+        "date": data.get("date")
+    }
+
+    meals_db.append(meal)
+
+    return jsonify({
+        "success": True,
+        "meal": meal
+    })
+
+
+#_______delete_meal
+
+@app.route("/delete_meal/<int:meal_id>", methods=["DELETE"])
+def delete_meal(meal_id):
+
+    global meals_db
+
+  
+    meals_db = [
+        m for m in meals_db
+        if m["id"] != meal_id
+    ]
+
+    return jsonify({
+        "success": True
+    })
+
+
+#-------clear_meals
+
+@app.route("/clear_meals", methods=["DELETE"])
+def clear_meals():
+
+    global meals_db
+
+    date = request.args.get("date")
+
+    meals_db = [
+        m for m in meals_db
+        if m["date"] != date
+    ]
+
+    return jsonify({
+        "success": True
+    })
 # =========================
 # 🌐 FRONTEND PAGES
 # =========================
@@ -188,29 +250,37 @@ def chat():
 # =========================
 # 🍽 GET MEALS API
 # =========================
-
 @app.route("/get_meals")
 def get_meals():
+
+    date = request.args.get("date")
+
+    filtered = [
+        m for m in meals_db
+        if m["date"] == date
+    ]
+
+    return jsonify(filtered)
+
+# -------dataset_meals
+@app.route("/dataset_meals")
+def dataset_meals():
 
     goal = request.args.get("goal", "maintain")
     meal_time = request.args.get("meal_time", "morning")
 
-    # Dataset load
-    df = pd.read_csv("meals_dataset.csv")
+    df = pd.read_excel("Datasets Nutrimate.xlsx")
 
-    # Filter
     filtered = df[
         (df["goal"] == goal) &
         (df["meal_time"] == meal_time)
     ]
 
-    # Random meals
     meals = filtered.sample(min(5, len(filtered)))
 
-    # JSON convert
-    result = meals.to_dict(orient="records")
-
-    return jsonify(result)
+    return jsonify(
+        meals.to_dict(orient="records")
+    )
 
 
 # =========================
