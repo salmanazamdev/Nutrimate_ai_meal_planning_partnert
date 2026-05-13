@@ -132,7 +132,62 @@ def terms():
     return render_template("terms.html")
 
 
-# =========================
+
+
+# =========================/chat
+@app.route("/chat", methods=["POST"])
+def chat():
+
+    try:
+
+        data = request.get_json(silent=True)
+
+        if not data:
+            return jsonify({
+                "success": False,
+                "error": "No JSON data received"
+            })
+
+        user_message = data.get("message", "").lower()
+
+        # LOAD DATASET
+        df = pd.read_excel("Datasets Nutrimate.xlsx")
+
+        # SEARCH MEALS
+        results = df[
+            df["meal"].astype(str)
+            .str.lower()
+            .str.contains(user_message, na=False)
+        ]
+
+        # IF NO MATCH
+        if results.empty:
+            results = df.sample(1)
+
+        meal = results.iloc[0]
+
+        return jsonify({
+            "success": True,
+            "meal": meal.get("meal", ""),
+            "type": meal.get("type", ""),
+            "calories": meal.get("calories", ""),
+            "protein": meal.get("protein", ""),
+            "carbs": meal.get("carbs", ""),
+            "fats": meal.get("fats", ""),
+            "why_this_meal": meal.get("why_this_meal", ""),
+            "image": meal.get("image", ""),
+            "image_prompt": meal.get("image_prompt", "")
+        })
+
+    except Exception as e:
+
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        })
+    
+
+
 # 🔥 AI RECOMMENDER API
 # =========================
 @app.route("/predict", methods=["POST"])
@@ -205,36 +260,6 @@ def predict():
             "error": str(e)
         })
 
-
-
-# =========================
-# 🤖 CHAT API
-# =========================
-
-@app.route("/chat", methods=["POST"])
-def chat():
-
-    data = request.get_json()
-    msg = data.get("message", "").lower()
-
-    if "protein" in msg:
-        goal = "gain"
-    elif "diet" in msg:
-        goal = "loss"
-    else:
-        goal = "maintain"
-
-    result = get_recommendations(
-        goal,
-        "none",
-        "vegan",
-        "morning"
-    )
-
-    return jsonify({
-        "status": "success",
-        "data": result
-    })
 
 
 # =========================

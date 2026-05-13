@@ -40,7 +40,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   if (slides.length > 1) {
-    setInterval(() => { idx = (idx + 1) % slides.length; showSlide(idx); }, 3500);
+    setInterval(() => { idx = (idx + 1) % slides.length; showSlide(idx); }, 1000);
     dots.forEach((d, i) => d.addEventListener("click", () => { idx = i; showSlide(idx); }));
   }
 
@@ -474,74 +474,133 @@ if (aiBtn) {
 }
   
   // =========================================
-  // CHATBOT
-  // =========================================
-  window.sendChat = async function () {
+// CHATBOT
+// =========================================
+// =========================================
+// CHATBOT
+// =========================================
+window.sendChat = async function () {
 
-    const input = document.getElementById("chatInput");
-    const box = document.getElementById("chatBox");
+  const input = document.getElementById("chatInput");
+  const box = document.getElementById("chatBox");
 
-    if (!input || !box) return;
+  if (!input || !box) return;
 
-    if (!input.value.trim()) return;
+  const userText = input.value.trim();
+  if (!userText) return;
 
-    const userText = input.value;
-
-    // USER MESSAGE
-    box.innerHTML += `
-
-      <div class="chat-msg user">
-        ${userText}
-      </div>
-
-    `;
-
-    input.value = "";
-
-    try {
-
-      const res = await fetch("/chat", {
-
-        method: "POST",
-
-        headers: {
-          "Content-Type": "application/json"
-        },
-
-        body: JSON.stringify({
-          message: userText
-        })
-      });
-
-      const data = await res.json();
-
-      box.innerHTML += `
-
-        <div class="chat-msg bot">
-
-          Recommended Meal:
-          ${
-            data.data?.[0]?.meal ||
-            "Healthy Meal"
-          }
-
-        </div>
-
-      `;
-
-    } catch (e) {
-
-      console.log(e);
-
-      box.innerHTML += `
-
-        <div class="chat-msg bot">
-          AI unavailable
-        </div>
-
-      `;
-    }
+  // escape HTML (security fix)
+  const escapeHTML = (str) => {
+    return str
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
   };
 
-});
+  // USER MESSAGE
+  box.insertAdjacentHTML("beforeend", `
+    <div class="chat-msg user">
+      ${escapeHTML(userText)}
+    </div>
+  `);
 
+  input.value = "";
+
+  // loading message
+  box.insertAdjacentHTML("beforeend", `
+    <div class="chat-msg bot loading">
+      Thinking...
+    </div>
+  `);
+
+  box.scrollTop = box.scrollHeight;
+
+  try {
+
+    const res = await fetch("/chat", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ message: userText })
+    });
+
+    const data = await res.json();
+
+    console.log(data);
+
+    // remove loading
+    const loading = box.querySelector(".loading");
+    if (loading) loading.remove();
+
+    // backend error
+    if (!data || !data.success) {
+      box.insertAdjacentHTML("beforeend", `
+        <div class="chat-msg bot">
+          ${data?.error || "No response from AI"}
+        </div>
+      `);
+      box.scrollTop = box.scrollHeight;
+      return;
+    }
+
+    // BOT MESSAGE
+    box.insertAdjacentHTML("beforeend", `
+      <div class="chat-msg bot">
+
+        <h3 style="color:#ea580c; margin-bottom:10px;">
+          ${data.meal || "Healthy Meal"}
+        </h3>
+
+        <p><b>Calories:</b> ${data.calories || "N/A"} kcal</p>
+        <p><b>Protein:</b> ${data.protein || "N/A"} g</p>
+        <p><b>Carbs:</b> ${data.carbs || "N/A"} g</p>
+        <p><b>Fats:</b> ${data.fats || "N/A"} g</p>
+
+        <p>
+          <b>Why This Meal?</b><br>
+          ${data.why_this_meal || "Healthy and nutritious meal."}
+        </p>
+
+        <p>
+          <b>AI Prompt:</b><br>
+          ${data.image_prompt || ""}
+        </p>
+
+        ${data.image ? `
+          <img src="${data.image}" 
+            style="
+              width:100%;
+              max-width:220px;
+              border-radius:14px;
+              margin-top:12px;
+              object-fit:cover;
+            "
+            onerror="this.style.display='none'"
+          >
+        ` : ""}
+
+      </div>
+    `);
+
+    box.scrollTop = box.scrollHeight;
+
+  } catch (err) {
+
+    console.log(err);
+
+    const loading = box.querySelector(".loading");
+    if (loading) loading.remove();
+
+    box.insertAdjacentHTML("beforeend", `
+      <div class="chat-msg bot">
+        AI unavailable
+      </div>
+    `);
+
+    box.scrollTop = box.scrollHeight;
+  }
+};
+});

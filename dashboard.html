@@ -68,7 +68,7 @@
     <img src="{{ url_for('static', filename='images/download1.jpeg') }}" class="active" alt="Healthy food">
     <img src="{{ url_for('static', filename='images/healthy.jpg') }}" alt="Healthy lifestyle">
     <img src="{{ url_for('static', filename='images/juice.jpg') }}" alt="Fresh juice">
-    <img src="{{ url_for('static', filename='images/♥ Ready to kickstart your healthy eating journey_.jpeg') }}" alt="Start your journey">
+    <img src="{{ url_for('static', filename='images/dietplan.jpeg') }}" alt="Start your journey">
   </div>
   <div class="hero-overlay"></div>
   <div class="dots">
@@ -239,21 +239,21 @@
       </div>
     </div>
 
-    <button id="suggestMealsBtn" class="btn-ai" type="submit">
+    <button id="suggestMealsBtn" class="btn-ai" type="button">
       Generate AI Meal Plan
     </button>
 
   </form>
 
   <!-- CHATBOT FIX (NO DUPLICATE ISSUE HANDLED LOGICALLY) -->
-  <div id="chatBox"></div>
+  <div id="chatBox" ></div>
 
   <div class="field-group" style="padding:20px 24px 24px;">
-    <label for="chatInput">
+    <label class="ai-chat" for="chatInput">
       <i class="fa-solid fa-comments"></i>
       AI Chat
     </label>
-
+<div id="chatMessages" id="chatBox" class="chat-messages"></div>
     <input type="text" id="chatInput" placeholder="Ask NutriMate AI anything...">
 
     <button type="button" onclick="sendChat()" class="btn-ai">
