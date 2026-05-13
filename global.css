@@ -756,7 +756,12 @@ display: flex;
   font-size: 15px;
   line-height: 1.6;
 }
-
+.step-content p a{
+  text-decoration: none;
+}
+.step-content p a:hover{
+  color:#F59E0B;
+}
 @media (max-width: 600px) {
   .steps {
     margin-left: 20px;

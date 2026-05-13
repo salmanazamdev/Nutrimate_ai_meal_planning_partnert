@@ -6,23 +6,44 @@ from recommender import get_recommendations
 app = Flask(__name__)
 
 # =========================
-# LOAD ML MODEL
+# LOAD MODEL
 # =========================
 try:
     model = joblib.load("meal_model.pkl")
     print("✅ ML Model Loaded")
 except:
     model = None
-    print("⚠️ ML Model not loaded")
+    print("⚠️ Model not loaded")
 
 
-#----meals_db
+# =========================
+# LOAD DATASETS (SAFE ONCE)
+# =========================
+try:
+    df1 = pd.read_excel("Datasets Nutrimate.xlsx")
+    df2 = pd.read_excel("Datasets Nutrimate2.xlsx")
 
+    df1.columns = df1.columns.str.strip().str.lower().str.replace(" ", "_")
+    df2.columns = df2.columns.str.strip().str.lower().str.replace(" ", "_")
+
+    print("✅ Datasets Loaded")
+except Exception as e:
+    df1 = pd.DataFrame()
+    df2 = pd.DataFrame()
+    print("⚠️ Dataset error:", e)
+
+
+# =========================
+# MEMORY DATABASE
+# =========================
 meals_db = []
 
+
+# =========================
+# ADD MEAL
+# =========================
 @app.route("/add_meal", methods=["POST"])
 def add_meal():
-
     data = request.get_json()
 
     meal = {
@@ -37,51 +58,34 @@ def add_meal():
 
     meals_db.append(meal)
 
-    return jsonify({
-        "success": True,
-        "meal": meal
-    })
+    return jsonify({"success": True, "meal": meal})
 
 
-#_______delete_meal
-
+# =========================
+# DELETE MEAL
+# =========================
 @app.route("/delete_meal/<int:meal_id>", methods=["DELETE"])
 def delete_meal(meal_id):
-
     global meals_db
-
-  
-    meals_db = [
-        m for m in meals_db
-        if m["id"] != meal_id
-    ]
-
-    return jsonify({
-        "success": True
-    })
+    meals_db = [m for m in meals_db if m.get("id") != meal_id]
+    return jsonify({"success": True})
 
 
-#-------clear_meals
-
+# =========================
+# CLEAR MEALS
+# =========================
 @app.route("/clear_meals", methods=["DELETE"])
 def clear_meals():
-
     global meals_db
-
     date = request.args.get("date")
 
-    meals_db = [
-        m for m in meals_db
-        if m["date"] != date
-    ]
+    meals_db = [m for m in meals_db if m.get("date") != date]
+    return jsonify({"success": True})
 
-    return jsonify({
-        "success": True
-    })
-# =========================
-# 🌐 FRONTEND PAGES
-# =========================
 
+# =========================
+# FRONTEND ROUTES
+# =========================
 @app.route("/")
 def welcome():
     return render_template("welcome.html")
@@ -132,39 +136,42 @@ def terms():
     return render_template("terms.html")
 
 
-
-
-# =========================/chat
+# =========================
+# CHAT API (DUAL DATASET SAFE)
+# =========================
 @app.route("/chat", methods=["POST"])
 def chat():
-
     try:
-
         data = request.get_json(silent=True)
 
         if not data:
-            return jsonify({
-                "success": False,
-                "error": "No JSON data received"
-            })
+            return jsonify({"success": False, "error": "No JSON received"})
 
         user_message = data.get("message", "").lower()
 
-        # LOAD DATASET
-        df = pd.read_excel("Datasets Nutrimate.xlsx")
+        # combine datasets safely
+        df = pd.concat([df1, df2], ignore_index=True)
 
-        # SEARCH MEALS
+        if df.empty:
+            return jsonify({"success": False, "error": "No dataset loaded"})
+
+        if "meal" not in df.columns:
+            return jsonify({"success": False, "error": "meal column missing"})
+
         results = df[
             df["meal"].astype(str)
             .str.lower()
             .str.contains(user_message, na=False)
         ]
 
-        # IF NO MATCH
+        # fallback safe sample
         if results.empty:
-            results = df.sample(1)
+            safe_df = df[df["meal"].notna()]
+            if safe_df.empty:
+                return jsonify({"success": False, "error": "No meals found"})
+            results = safe_df.sample(1)
 
-        meal = results.iloc[0]
+        meal = results.iloc[0].to_dict()
 
         return jsonify({
             "success": True,
@@ -174,44 +181,45 @@ def chat():
             "protein": meal.get("protein", ""),
             "carbs": meal.get("carbs", ""),
             "fats": meal.get("fats", ""),
-            "why_this_meal": meal.get("why_this_meal", ""),
+            "goal": meal.get("goal", ""),
+            "disease": meal.get("disease", ""),
+            "bmi_level": meal.get("bmi_level", ""),
+            "diet_type": meal.get("diet_type", ""),
+            "meal_time": meal.get("meal_time", ""),
             "image": meal.get("image", ""),
             "image_prompt": meal.get("image_prompt", "")
         })
 
     except Exception as e:
-
-        return jsonify({
-            "success": False,
-            "error": str(e)
-        })
-    
+        return jsonify({"success": False, "error": str(e)})
 
 
-# 🔥 AI RECOMMENDER API
+# =========================
+# PREDICT API
 # =========================
 @app.route("/predict", methods=["POST"])
 def predict():
     try:
 
         if model is None:
-            return jsonify({
-                "success": False,
-                "error": "Model not loaded"
-            })
+            return jsonify({"success": False, "error": "Model not loaded"})
 
-        data = request.get_json()
+        data = request.get_json(silent=True)
+        if not data:
+            return jsonify({"success": False, "error": "No input data"})
 
-        age = float(data.get("age", 25))
-        weight = float(data.get("weight", 70))
-        height = float(data.get("height", 170))
-        gender = data.get("gender", "male")
-        goal = data.get("goal", "maintain")
-        disease = data.get("disease", "none")
+        age = float(data.get("age") or 25)
+        weight = float(data.get("weight") or 70)
+        height = float(data.get("height") or 170)
 
-        # height fix
+        gender = data.get("gender") or "male"
+        goal = data.get("goal") or "maintain"
+        disease = data.get("disease") or "none"
+
+        diet_type = data.get("dietType") or "omnivore"
+        meal_time = data.get("meal_time") or "morning"
+
         height_m = height / 100 if height > 3 else height
-
         bmi = weight / (height_m ** 2)
 
         bmi_level = (
@@ -221,8 +229,6 @@ def predict():
             "obese"
         )
 
-        bmi_age = bmi * age
-
         input_df = pd.DataFrame([{
             "age": age,
             "weight": weight,
@@ -231,18 +237,16 @@ def predict():
             "bmi": bmi,
             "goal": goal,
             "disease": disease,
-            "bmi_level": bmi_level,
-            "bmi_age": bmi_age
+            "bmi_level": bmi_level
         }])
 
         prediction = model.predict(input_df)
 
-        # ✅ FIXED: USE REAL USER INPUT
         recommendations = get_recommendations(
             goal=goal,
             disease=disease,
-            diet_type=data.get("dietType", "omnivore"),
-            meal_time=data.get("meal_time", "morning"),
+            diet_type=diet_type,
+            meal_time=meal_time,
             use_ai_image=True
         )
 
@@ -255,52 +259,66 @@ def predict():
         })
 
     except Exception as e:
-        return jsonify({
-            "success": False,
-            "error": str(e)
-        })
-
+        return jsonify({"success": False, "error": str(e)})
 
 
 # =========================
-# 🍽 GET MEALS API
+# GET MEALS (SAFE)
 # =========================
 @app.route("/get_meals")
 def get_meals():
+    try:
+        date = request.args.get("date")
 
-    date = request.args.get("date")
+        if not date:
+            return jsonify({"success": False, "error": "Date required"})
 
-    filtered = [
-        m for m in meals_db
-        if m["date"] == date
-    ]
+        filtered = [m for m in meals_db if m.get("date") == date]
 
-    return jsonify(filtered)
+        return jsonify({"success": True, "data": filtered})
 
-# -------dataset_meals
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)})
+
+
+# =========================
+# DATASET MEALS
+# =========================
 @app.route("/dataset_meals")
 def dataset_meals():
+    try:
+        goal = request.args.get("goal", "maintain")
+        meal_time = request.args.get("meal_time", "morning")
 
-    goal = request.args.get("goal", "maintain")
-    meal_time = request.args.get("meal_time", "morning")
+        df = pd.concat([df1, df2], ignore_index=True)
 
-    df = pd.read_excel("Datasets Nutrimate.xlsx")
+        if df.empty:
+            return jsonify({"success": False, "error": "Dataset empty"})
 
-    filtered = df[
-        (df["goal"] == goal) &
-        (df["meal_time"] == meal_time)
-    ]
+        if "goal" not in df.columns or "meal_time" not in df.columns:
+            return jsonify({"success": False, "error": "Missing columns"})
 
-    meals = filtered.sample(min(5, len(filtered)))
+        filtered = df[
+            (df["goal"] == goal) &
+            (df["meal_time"] == meal_time)
+        ]
 
-    return jsonify(
-        meals.to_dict(orient="records")
-    )
+        if filtered.empty:
+            return jsonify({"success": True, "data": []})
+
+        meals = filtered.sample(min(5, len(filtered)))
+
+        return jsonify({
+            "success": True,
+            "data": meals.to_dict(orient="records")
+        })
+
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)})
 
 
 # =========================
 # RUN SERVER
 # =========================
-
 if __name__ == "__main__":
     app.run(debug=True)
