@@ -3,9 +3,9 @@ import os
 # =========================
 # ⚙️ PERFORMANCE FIX (IMPORTANT)
 # =========================
-os.environ["OMP_NUM_THREADS"] = "1"
-os.environ["OPENBLAS_NUM_THREADS"] = "1"
-os.environ["MKL_NUM_THREADS"] = "1"
+os.environ["OMP_NUM_THREADS"] = "2"
+os.environ["OPENBLAS_NUM_THREADS"] = "2"
+os.environ["MKL_NUM_THREADS"] = "2"
 
 from image_generator import generate_image
 import pandas as pd
@@ -56,12 +56,21 @@ def load_dataset(path):
     return df
 
 
-df = load_dataset("Datasets Nutrimate2.xlsx")
+DATASET_PATH = "Datasets Nutrimate2.xlsx"
+df = load_dataset(DATASET_PATH)
+# =========================
+# CLEAN TEXT COLUMNS (IMPORTANT FIX)
+# =========================
+df["meal_time"] = df["meal_time"].astype(str).str.lower().str.strip()
+df["goal"] = df["goal"].astype(str).str.lower().str.strip()
+df["diet_type"] = df["diet_type"].astype(str).str.lower().str.strip()
+df["disease"] = df["disease"].astype(str).str.lower().str.strip()
 
 
 # =========================
 # 🍽️ SMART RECOMMENDER ENGINE
 # =========================
+
 def recommend_meals(goal, disease, diet_type, meal_time, top_n=5):
 
     data = df.copy()
@@ -71,39 +80,36 @@ def recommend_meals(goal, disease, diet_type, meal_time, top_n=5):
     diet_type = diet_type.lower().strip()
     meal_time = meal_time.lower().strip()
 
-    # safe filtering (no crash ever)
-    if "goal" in data.columns:
+    # 🔥 SHUFFLE FIRST (fix repetition)
+    data = data.sample(frac=1).reset_index(drop=True)
+
+    # soft filtering (NOT strict crash)
+    if goal in data["goal"].values:
         data = data[data["goal"] == goal]
 
-    if "diet_type" in data.columns:
+    if diet_type in data["diet_type"].values:
         data = data[data["diet_type"] == diet_type]
 
-    if "meal_time" in data.columns:
-        data = data[data["meal_time"] == meal_time]
+    if meal_time in data["meal_time"].values:
+      data = data[data["meal_time"].str.contains(meal_time, na=False)]
 
-    if "disease" in data.columns and disease != "none":
+    if disease != "none" and "disease" in data.columns:
         data = data[(data["disease"] == disease) | (data["disease"] == "none")]
 
-    # remove duplicates
-    if "meal" in data.columns:
-        data = data.drop_duplicates(subset=["meal"])
-
-    # scoring system (AI ranking)
-    if not data.empty:
-        data["score"] = (
-            data["protein"] * 2
-            - data["calories"] * 0.01
-            - data["fats"] * 0.3
-            + np.random.rand(len(data)) * 0.2
-        )
-
-        data = data.sort_values(by="score", ascending=False)
-
-    else:
+    # fallback fix
+    if data.empty:
         data = df.sample(min(top_n, len(df)))
 
-    return data.head(top_n)
+    # ranking system
+    data["score"] = (
+        data["protein"] * 2
+        - data["calories"] * 0.01
+        - data["fats"] * 0.3
+    )
 
+    data = data.sort_values("score", ascending=False)
+
+    return data.head(top_n)
 
 # =========================
 # 🤖 WHY THIS MEAL ENGINE
@@ -138,7 +144,15 @@ def get_image(row, use_ai=False):
     image_path = row.get("image", "none.jpg")
     prompt = row.get("image_prompt", "")
 
-    # dataset mode
+    # =========================
+    # CLEAN PROMPT FIX
+    # =========================
+    if pd.isna(prompt) or str(prompt).strip() == "":
+        prompt = f"{row.get('meal','food')} healthy food image"
+
+    # =========================
+    # 🟡 DATASET MODE (DEFAULT)
+    # =========================
     if not use_ai:
         return {
             "mode": "dataset",
@@ -146,13 +160,24 @@ def get_image(row, use_ai=False):
             "prompt": prompt
         }
 
-    # AI mode (future integration)
+    # =========================
+    # 🔥 AI MODE
+    # =========================
     try:
         ai_image = generate_image(prompt)
+
         if ai_image:
             image_path = ai_image
+
     except Exception as e:
         print("⚠️ AI image failed:", e)
+
+        # fallback dataset image
+        return {
+            "mode": "dataset",
+            "image": image_path,
+            "prompt": prompt
+        }
 
     return {
         "mode": "ai",
@@ -198,23 +223,55 @@ def get_recommendations(goal, disease, diet_type, meal_time, use_ai_image=False)
 # =========================
 # 🧪 TEST RUN
 # =========================
+# 🧪 TEST RUN (FINAL CLEAN & DYNAMIC)
+# =========================
+
 if __name__ == "__main__":
 
-    output = get_recommendations(
-        goal="loss",
-        disease="none",
-        diet_type="vegan",
-        meal_time="morning",
-        use_ai_image=False
-    )
+    try:
+        import random
 
-    print("\n🔥 FINAL OUTPUT:\n")
+        goals = ["loss", "gain", "maintain"]
+        meals = ["morning", "lunch", "dinner"]
 
-    for r in output:
-        print("Meal:", r["meal"])
-        print("Type:", r["type"])
-        print("Calories:", r["calories"])
-        print("Image:", r["image_data"]["image"])
-        print("Prompt:", r["image_data"]["prompt"])
-        print("Why:", r["why"])
-        print("-" * 60)
+         # optional test sample
+        data = df.sample(5)
+        print(data)
+
+        # 🔥 DYNAMIC INPUT (NOT STATIC)
+        output = get_recommendations(
+            goal=random.choice(goals),
+            disease="none",
+            diet_type="vegan",
+            meal_time=random.choice(meals),
+            use_ai_image=False
+        )
+
+        print("\n🔥 ===== NUTRIMATE AI OUTPUT ===== 🔥\n")
+
+        for i, r in enumerate(output, start=1):
+
+            image_data = r.get("image_data", {})
+
+            print(f"\n🍽 Meal {i}: {r.get('meal', 'N/A')}")
+            print(f"🥗 Type: {r.get('type', 'N/A')}")
+            print(f"🔥 Calories: {r.get('calories', 0)}")
+            print(f"💪 Protein: {r.get('protein', 0)}g")
+            print(f"🍞 Carbs: {r.get('carbs', 0)}g")
+            print(f"🥑 Fats: {r.get('fats', 0)}g")
+
+            print(f"🎯 Goal: {r.get('goal', 'N/A')}")
+            print(f"⚕ Disease: {r.get('disease', 'none')}")
+            print(f"⏰ Meal Time: {r.get('meal_time', 'N/A')}")
+
+            print(f"🧠 Why: {', '.join(r.get('why', []))}")
+
+            print(f"🖼 Mode: {image_data.get('mode', 'dataset')}")
+            print(f"📷 Image: {image_data.get('image', 'N/A')}")
+            print(f"📝 Prompt: {image_data.get('prompt', 'N/A')}")
+
+            print("-" * 60)
+
+    except Exception as e:
+        print("❌ Test Run Failed:", str(e))
+       

@@ -27,6 +27,24 @@ document.addEventListener("DOMContentLoaded", async () => {
     planDateEl.value = new Date().toISOString().split("T")[0];
   }
 
+  // ── IMAGE SLIDER ─────────────────────────────────────────
+  const slides = document.querySelectorAll(".slider img");
+  const dots   = document.querySelectorAll(".dot");
+  let idx = 0;
+
+  function showSlide(i) {
+    slides.forEach(s => s.classList.remove("active"));
+    dots.forEach(d   => d.classList.remove("active"));
+    if (slides[i]) slides[i].classList.add("active");
+    if (dots[i])   dots[i].classList.add("active");
+  }
+
+  if (slides.length > 1) {
+    setInterval(() => { idx = (idx + 1) % slides.length; showSlide(idx); }, 3500);
+    dots.forEach((d, i) => d.addEventListener("click", () => { idx = i; showSlide(idx); }));
+  }
+
+
   // =========================================
   // UPDATE TOTALS
   // =========================================
@@ -362,127 +380,99 @@ document.addEventListener("DOMContentLoaded", async () => {
         Math.round(weight * 1.6);
     });
   }
+// =========================================
+// AI PREDICT — FINAL CLEAN VERSION
+// =========================================
 
-  // =========================================
-  // AI PREDICT
-  // =========================================
-  const aiBtn = document.getElementById("suggestMealsBtn");
+const aiBtn = document.getElementById("suggestMealsBtn");
 
-  if (aiBtn) {
+if (aiBtn) {
 
-    aiBtn.addEventListener("click", async (e) => {
+  aiBtn.addEventListener("click", async (e) => {
+    e.preventDefault();
 
-      e.preventDefault();
+    if (!aiArea) return;
 
-      if (!aiArea) return;
+    // Loading state
+    aiArea.innerHTML = `
+      <p class="loading-inline">
+        <i class="fa-solid fa-spinner fa-spin"></i>
+        Generating your meal plan…
+      </p>
+    `;
 
-      aiArea.innerHTML = `
-        <p>Generating AI meals...</p>
+    // Payload
+    const payload = {
+      age: document.getElementById("age")?.value || 25,
+      weight: document.getElementById("weight")?.value || 70,
+      height: document.getElementById("height")?.value || 170,
+      gender: document.getElementById("gender")?.value || "male",
+      goal: document.getElementById("goalType")?.value || "maintain",
+      disease: document.getElementById("disease")?.value || "none",
+      activity: document.getElementById("activity")?.value || "moderate"
+    };
+
+    try {
+
+      const res = await fetch("/predict", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await res.json();
+
+      // API error handling
+      if (!data.success) {
+        aiArea.innerHTML = `
+          <div class="ai-error">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            ${data.error || "No AI data found"}
+          </div>
+        `;
+        return;
+      }
+
+      // Build UI
+      let html = `
+        <div class="bmi-box">
+          <p><strong>BMI:</strong> ${data.bmi}</p>
+          <p><strong>Status:</strong> ${data.bmi_level}</p>
+        </div>
       `;
 
-      const payload = {
+      html += (data.recommendations || []).map(m => `
+        <div class="ai-result">
+          <h3>${m.meal}</h3>
+          <p>${m.type}</p>
+          <p>${m.calories} kcal</p>
 
-        age:
-          document.getElementById("age")?.value || 25,
+          ${m.image_data?.image
+            ? `<img src="${m.image_data.image}" width="150">`
+            : ""
+          }
+        </div>
+      `).join("");
 
-        weight:
-          document.getElementById("weight")?.value || 70,
+      aiArea.innerHTML = html;
 
-        height:
-          document.getElementById("height")?.value || 170,
+    } catch (err) {
 
-        gender:
-          document.getElementById("gender")?.value || "male",
+      console.log(err);
 
-        goal:
-          document.getElementById("goalType")?.value || "maintain",
+      aiArea.innerHTML = `
+        <div class="ai-error">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          AI server unavailable. Make sure Flask is running.
+        </div>
+      `;
+    }
 
-        disease:
-          document.getElementById("disease")?.value || "none"
-      };
-
-      try {
-
-        const res = await fetch("/predict", {
-
-          method: "POST",
-
-          headers: {
-            "Content-Type": "application/json"
-          },
-
-          body: JSON.stringify(payload)
-        });
-
-        const data = await res.json();
-
-if (data.success || data.status === "success") {
-
-  aiArea.innerHTML = `
-    <div class="bmi-box">
-      <p><strong>BMI:</strong> ${data.bmi}</p>
-      <p><strong>Status:</strong> ${data.bmi_level}</p>
-    </div>
-  `;
-
-  aiArea.innerHTML += data.recommendations?.map(m => `
-    <div class="ai-result">
-      <h3>${m.meal}</h3>
-      <p>${m.type}</p>
-      <p>${m.calories} kcal</p>
-
-      ${m.image_data?.image
-        ? `<img src="${m.image_data.image}" width="150">`
-        : ""
-      }
-    </div>
-  `).join("");
-
-} else {
-
-  aiArea.innerHTML = "No AI data found";
+  });
 }
-          // AI MEALS
-
-
-if (data.success || data.status === "success") {
-
-  aiArea.innerHTML = `
-    <div class="bmi-box">
-      <p><strong>BMI:</strong> ${data.bmi}</p>
-      <p><strong>Status:</strong> ${data.bmi_level}</p>
-    </div>
-  `;
-
-  aiArea.innerHTML += data.recommendations?.map(m => `
-    <div class="ai-result">
-      <h3>${m.meal}</h3>
-      <p>${m.type}</p>
-      <p>${m.calories} kcal</p>
-
-      ${m.image_data?.image
-        ? `<img src="${m.image_data.image}" width="150">`
-        : ""
-      }
-    </div>
-  `).join("");
-
-} else {
-
-  aiArea.innerHTML = "No AI data found";
-}
-} catch (e) {
-
-  console.log(e);
-
-  aiArea.innerHTML = `
-    <p>AI server unavailable</p>
-  `;
-}
-
-});
-}
-
+  
   // =========================================
   // CHATBOT
   // =========================================

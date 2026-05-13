@@ -29,10 +29,10 @@
 
 <!-- HEADER -->
 <header class="header">
-  <div class="logo"><h3>NutriMate</h3></div>
-
-  <!-- ✅ FLASK NAV LINKS -->
-  <nav class="nav">
+  <a href="{{ url_for('dashboard') }}" class="header-logo-link">
+    <img src="{{ url_for('static', filename='images/fyp logo-11.png') }}" alt="NutriMate" class="header-logo-img">
+  </a>
+  <nav class="nav" aria-label="Primary navigation">
     <ul>
       <li><a href="{{ url_for('dashboard') }}">Home</a></li>
       <li><a href="{{ url_for('howitworks') }}">How It Works</a></li>
@@ -44,21 +44,14 @@
       <li><a href="{{ url_for('contact') }}">Contact</a></li>
     </ul>
   </nav>
-
-  <!-- ✅ FIXED BUTTON (NO ERROR) -->
-<div class="button">
-
-  <button type="button" onclick="location.href='{{ url_for('login') }}'">
-    Login
-  </button>
-
-  <button type="button" onclick="location.href='{{ url_for('logout') }}'">
-    Logout
-  </button>
-
-</div>
-
+  <div class="header-actions">
+    <button type="button" id="loginBtn" class="btn-outline-header" onclick="location.href='{{ url_for('login') }}';">Login</button>
+    <button type="button" class="btn-logout" onclick="logout()">
+      <i class="fa-solid fa-right-from-bracket"></i> Logout
+    </button>
+  </div>
 </header>
+
 
 <!-- SIDEBAR -->
 <div class="sidebar-container">
@@ -79,7 +72,7 @@
 
 <main class="how-container" id="privacyMain" role="main">
   <section class="how-header">
-    <h1>Privacy Policy</h1>
+    <h1><span class="white">Privacy </span>Policy</h1>
     <p>How NutriMate collects, uses, and protects your information.</p>
   </section>
 
@@ -137,29 +130,46 @@
 
 <!-- FOOTER -->
 <footer class="footer">
-
-  <div class="footer-top">
-    <h3>Nutri<span class="white">Mate</span></h3>
-
-    <ul>
-      <li><a href="{{ url_for('dashboard') }}">Home</a></li>
-      <li><a href="{{ url_for('about') }}">About</a></li>
-      <li><a href="{{ url_for('faq') }}">FAQ</a></li>
-      <li><a href="{{ url_for('contact') }}">Contact</a></li>
-    </ul>
+  <div class="footer-inner">
+    <div class="footer-brand">
+      
+      <div>
+        <img src="{{ url_for('static', filename='images/fyp logo-16.png') }}" alt="NutriMate" class="footer-text-logo">
+        <p>Your personal AI 
+diet assistant.<br>Eat smart, live well.</p>
+        <div class="social-icons">
+          <a href="#" aria-label="TikTok"><i class="fa-brands fa-tiktok"></i></a>
+          <a href="#" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
+          <a href="#" aria-label="Facebook"><i class="fa-brands fa-facebook"></i></a>
+          <a href="#" aria-label="WhatsApp"><i class="fa-brands fa-whatsapp"></i></a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-links-group">
+      <h4>Navigate</h4>
+      <ul>
+        <li><a href="{{ url_for('dashboard') }}">Home</a></li>
+        <li><a href="{{ url_for('howitworks') }}">How It Works</a></li>
+        <li><a href="{{ url_for('about') }}">About</a></li>
+        <li><a href="{{ url_for('dashboard') }}#mealplans">Meal Plans</a></li>
+        <li><a href="{{ url_for('dashboard') }}#aiplans">AI Planner</a></li>
+        <li><a href="{{ url_for('dashboard') }}#goals">Goals</a></li>
+      </ul>
+    </div>
+    <div class="footer-links-group">
+      <h4>Support</h4>
+      <ul>
+        <li><a href="{{ url_for('faq') }}">FAQ</a></li>
+        <li><a href="{{ url_for('contact') }}">Contact Us</a></li>
+        <li><a href="{{ url_for('privacy') }}">Privacy Policy</a></li>
+        <li><a href="{{ url_for('terms') }}">Terms of Service</a></li>
+      </ul>
+    </div>
   </div>
-
-  <div class="links">
-    <h4>© 2026 NutriMate</h4>
-
-    <!-- ✅ IMPORTANT: ROUTE NAMES MUST EXIST IN app.py -->
-    <a href="{{ url_for('privacy') }}">Privacy Policy</a> |
-    <a href="{{ url_for('terms') }}">Terms</a> |
-    <a href="{{ url_for('about') }}">About</a> |
-    <a href="{{ url_for('faq') }}">FAQ</a> |
-    <a href="{{ url_for('contact') }}">Contact</a>
+  <div class="footer-bottom">
+    <span>&copy; 2026 NutriMate. All rights reserved.</span>
+    <span>Made with <i class="fa-solid fa-heart" style="color:#F59E0B"></i> for healthy living</span>
   </div>
-
 </footer>
 
 </div>

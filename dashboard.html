@@ -302,9 +302,9 @@
           <input id="height" type="number" placeholder="cm" min="1">
         </div>
   
-        <div class="form-row two-col"></div>
+        <div class="form-row two-col">
         <div class="field-group">
-  <label>Gender</label>
+  <label for="gender"><i class="fa-solid fa-person-half-dress"></i>Gender</label>
 
   <select id="gender">
     <option value="male">Male</option>
@@ -313,13 +313,14 @@
 </div>
 
 <div class="field-group">
-  <label>Disease</label>
+  <label for="disease"><i class="fa-solid fa-virus"></i>Disease</label>
 
   <select id="disease">
     <option value="none">None</option>
     <option value="diabetes">Diabetes</option>
     <option value="bp">Blood Pressure</option>
   </select>
+</div>
 </div>
         <div class="form-row two-col">
           <div class="field-group">
@@ -330,7 +331,7 @@
               <option value="moderate" selected>Moderate</option>
               <option value="active">Active</option>
             </select>
-          </div>
+          </div><br>
           <div class="field-group">
             <label for="dietType"><i class="fa-solid fa-leaf"></i> Diet Type</label>
             <select id="dietType">
@@ -338,7 +339,7 @@
               <option value="vegetarian">Vegetarian</option>
               <option value="vegan">Vegan</option>
             </select>
-          </div>
+          </div><br>
           <button id="profileBtn" class="btn-save" class="dash-btn">
   Save Profile
 </button>
@@ -358,7 +359,7 @@
         </div>
       
 
-  </div>
+  
 
 
         <div class="field-group">
@@ -389,7 +390,8 @@
       </div>
     </div>
   </div>
-
+</div>
+</div>
 
 <footer class="footer">
   <div class="footer-inner">
@@ -433,6 +435,8 @@ diet assistant.<br>Eat smart, live well.</p>
     <span>Made with <i class="fa-solid fa-heart" style="color:#F59E0B"></i> for healthy living</span>
   </div>
 </footer>
+
+
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
@@ -441,6 +445,6 @@ diet assistant.<br>Eat smart, live well.</p>
 <script src="{{ url_for('static', filename='js/database.js') }}"></script>
 <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 
-</div>
+
 </body>
 </html>

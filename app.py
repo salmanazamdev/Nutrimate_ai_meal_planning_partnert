@@ -135,7 +135,6 @@ def terms():
 # =========================
 # 🔥 AI RECOMMENDER API
 # =========================
-
 @app.route("/predict", methods=["POST"])
 def predict():
     try:
@@ -143,41 +142,32 @@ def predict():
         if model is None:
             return jsonify({
                 "success": False,
-                "error": "Model not loaded. Run main.py first."
+                "error": "Model not loaded"
             })
 
         data = request.get_json()
 
-        # User Inputs
         age = float(data.get("age", 25))
         weight = float(data.get("weight", 70))
         height = float(data.get("height", 170))
         gender = data.get("gender", "male")
-        goal = data.get("goal", "maintain").lower()
+        goal = data.get("goal", "maintain")
         disease = data.get("disease", "none")
 
-        # Height convert cm -> meter
-        if height > 3:
-            height_m = height / 100
-        else:
-            height_m = height
+        # height fix
+        height_m = height / 100 if height > 3 else height
 
-        # BMI
         bmi = weight / (height_m ** 2)
 
-        # BMI Level
-        if bmi < 18.5:
-            bmi_level = "under"
-        elif bmi < 25:
-            bmi_level = "normal"
-        elif bmi < 30:
-            bmi_level = "over"
-        else:
-            bmi_level = "obese"
+        bmi_level = (
+            "under" if bmi < 18.5 else
+            "normal" if bmi < 25 else
+            "over" if bmi < 30 else
+            "obese"
+        )
 
         bmi_age = bmi * age
 
-        # Model Input
         input_df = pd.DataFrame([{
             "age": age,
             "weight": weight,
@@ -190,15 +180,14 @@ def predict():
             "bmi_age": bmi_age
         }])
 
-        # Prediction
         prediction = model.predict(input_df)
 
-        # Recommendation
+        # ✅ FIXED: USE REAL USER INPUT
         recommendations = get_recommendations(
             goal=goal,
             disease=disease,
-            diet_type="vegan",
-            meal_time="morning",
+            diet_type=data.get("dietType", "omnivore"),
+            meal_time=data.get("meal_time", "morning"),
             use_ai_image=True
         )
 
@@ -215,6 +204,7 @@ def predict():
             "success": False,
             "error": str(e)
         })
+
 
 
 # =========================

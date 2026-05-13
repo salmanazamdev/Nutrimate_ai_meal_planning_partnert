@@ -20,7 +20,7 @@
 </div>
 <header class="header">
   <a href="{{ url_for('dashboard') }}" class="header-logo-link">
-    <img src="{{ url_for('static', filename='images/nutritextlogo.png') }}" alt="NutriMate" class="header-logo-img">
+    <img src="{{ url_for('static', filename='images/fyp logo-11.png') }}" alt="NutriMate" class="header-logo-img">
   </a>
   <nav class="nav" aria-label="Primary navigation">
     <ul>
@@ -35,8 +35,7 @@
     </ul>
   </nav>
   <div class="header-actions">
-    <button type="button" id="loginBtn" style="display:none" class="btn-outline-header"
-      onclick="location.href='{{ url_for('login') }}'">Login</button>
+    <button type="button" id="loginBtn" class="btn-outline-header" onclick="location.href='{{ url_for('login') }}';">Login</button>
     <button type="button" class="btn-logout" onclick="logout()">
       <i class="fa-solid fa-right-from-bracket"></i> Logout
     </button>
@@ -63,7 +62,7 @@
   </div>
 </div>
 <div class="inner-hero" id="mainContent">
-  <h1>Contact NutriMate</h1>
+  <h1><span class="white">Contact</span> NutriMate</h1>
   <p>Reach us for support, collaboration, or feature feedback.</p>
 </div>
 <main class="how-container">
@@ -90,10 +89,11 @@
 <footer class="footer">
   <div class="footer-inner">
     <div class="footer-brand">
-      <img src="{{ url_for('static', filename='images/nutrilogo.png') }}" alt="" class="footer-art-logo">
+      
       <div>
-        <img src="{{ url_for('static', filename='images/nutritextlogo.png') }}" alt="NutriMate" class="footer-text-logo">
-        <p>Your AI-powered meal planning partner.<br>Eat smart, live well.</p>
+        <img src="{{ url_for('static', filename='images/fyp logo-16.png') }}" alt="NutriMate" class="footer-text-logo">
+        <p>Your personal AI 
+diet assistant.<br>Eat smart, live well.</p>
         <div class="social-icons">
           <a href="#" aria-label="TikTok"><i class="fa-brands fa-tiktok"></i></a>
           <a href="#" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
@@ -128,6 +128,7 @@
     <span>Made with <i class="fa-solid fa-heart" style="color:#F59E0B"></i> for healthy living</span>
   </div>
 </footer>
+
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
